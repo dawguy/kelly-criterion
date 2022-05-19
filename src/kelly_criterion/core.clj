@@ -7,20 +7,46 @@
 ; Bet 100
 ; Winning total = 200
 ; Losing total = 0
-; Odds 1:1
+; Odds 1:1 or 1.0
 ;
 ; Bet 100
 ; Winning total = 300
 ; Losing total = 0
-; Odds 2:1
+; Odds 2:1 or 2.0
+;
+; To make all my math simple right now though I'm going to do all calculations based
+; on a payout value assuming a 100 bet.
 
-(defn expected-value [chances])
+(defn bet-to-odds [payout] (/ payout 100))
 
+(defn expected-value [chances]
+  (reduce + 0 (map #(* (:prob %) (:payout %)) chances))
+)
+
+; I don't have the formula for this memorized :'(
+; Going to simulate it based on averaging a couple thousand runs of a couple thousand bets
+(defn growth-rate [chances bet-size]
+  )
+
+(defn simulate-bet [chances bet-amount]
+  (loop [dart (rand)
+         [c & rem-chances] chances]
+    (if (< 0 (- dart (:prob c)))
+      (recur (- dart (:prob c)) rem-chances)
+      (* bet-amount (bet-to-odds (:payout c)))
+    )
+  ))
+
+(defn chances-seq [chances times] (take times (for [x (range times) y [(simulate-bet chances times)] :while (< x times)] y)))
+(defn chances-counts [s] (reduce #(assoc %1 %2 (inc (get %1 %2 0))) {} s))
+
+(defn simulate-starting-pool [chances initial-pool bet-size])
 
 
 (comment
 "A list of runnable helpful commands"
 []
   (prn "yo dog")
-  (def chances [{:prob .15 :odds}])
+  (def chances [{:prob 0.15 :payout 300} {:prob 0.35 :payout 200} {:prob 0.5 :payout 0}])
+  (def chances-run (chances-counts (chances-seq chances 10000)))
 )
