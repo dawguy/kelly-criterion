@@ -40,7 +40,15 @@
 (defn chances-seq [chances times] (take times (for [x (range times) y [(simulate-bet chances times)] :while (< x times)] y)))
 (defn chances-counts [s] (reduce #(assoc %1 %2 (inc (get %1 %2 0))) {} s))
 
-(defn simulate-starting-pool [chances initial-pool bet-size])
+(defn simulate-bets [chances bet-percent initial-pool num-bets]
+  (loop [n num-bets
+         money initial-pool]
+      (if (> n 0)
+        (if (< 0.1 money)
+          (recur (dec n) (+ (- money (* bet-percent money)) (simulate-bet chances (* bet-percent money))))
+        0)
+      money)
+  ))
 
 
 (comment
