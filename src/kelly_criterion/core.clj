@@ -50,11 +50,20 @@
       money)
   ))
 
+(defn calculate-best-growth-rate [chances]
+  (take 101 (for [x (range 101) :while (< x 101)]
+              (let [l (take 2500 (repeatedly #(simulate-bets chances (double (/ x 100)) 1 500)))]
+                [x (/ (reduce + 0 l) (count l))])
+              )))
 
 (comment
 "A list of runnable helpful commands"
 []
   (prn "yo dog")
   (def chances [{:prob 0.15 :payout 300} {:prob 0.35 :payout 200} {:prob 0.5 :payout 0}])
+  (def chances [{:prob 0.1 :payout 1250} {:prob 0.9 :payout 0}])
+  (def chances [{:prob 0.025 :payout 1500} {:prob 0.1 :payout 500} {:prob 0.2 :payout 300} {:prob 0.15 :payout 150} {:prob 0.35 :payout 50} {:prob 0.175 :payout 20}])
+  (def chances [{:prob 0.02 :payout 2000} {:prob 0.03 :payout 1500} {:prob 0.05 :payout 1000} {:prob 0.05 :payout 500} {:prob 0.25 :payout 250} {:prob 0.15 :payout 150} {:prob 0.45 :payout 25}])
   (def chances-run (chances-counts (chances-seq chances 10000)))
+  (calculate-best-growth-rate chances)
 )
