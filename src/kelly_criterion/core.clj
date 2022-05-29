@@ -23,14 +23,14 @@
   (let [prob-sum (reduce #(+ %1 (:prob %2)) 0 chances)] (map #(assoc %1 :prob (/ (:prob %1) prob-sum)) chances)))
 
 (defn expected-value [chances]
+  "Generates series of randomly picked outcomes and groups them."
   (reduce + 0 (map #(* (:prob %) (/ (:payout %) 100)) chances))
 )
 
 (defn translate-to-bet-payoff [chances]
+  "Updates all :prob values from being 100 based to being 1 based. This allows the growth-rate formula to work without added complexity of in-function normalization."
   (map #(array-map :prob (:prob %) :payout (- (/ (:payout %1) 100) 1)) chances))
 
-; I don't have the formula for this memorized :'(
-; Going to simulate it based on averaging a couple thousand runs of a couple thousand bets
 (defn growth-rate [chances bet-size]
   ; https://math.stackexchange.com/questions/662104/kelly-criterion-with-more-than-two-outcomes
   ; sum(p * (log(1 + odds * bet-size) + log(M))
@@ -72,15 +72,15 @@
       money)
   ))
 
-(defn calculate-best-growth-rate [chances]
-  (take 101 (for [x (range 101) :while (< x 101)]
+(defn calculate-best-growth-rate [unnormalized-chances]
+  (let [chances (normalize-probs unnormalized-chances)] (take 101 (for [x (range 101) :while (< x 101)]
               (let [l (take 2500 (repeatedly #(simulate-bets chances (double (/ x 100)) 1 500)))]
                 [x (/ (reduce + 0 l) (count l))])
-              )))
+              ))))
 
 (comment
-"A list of runnable helpful commands"
-[]
+  "A list of runnable helpful commands"
+  []
   (def bet-size 0.1)
   (def chances [{:prob 0.6 :payout 200} {:prob 0.4 :payout 0}])
   (def chances [{:prob 0.6 :payout 200} {:prob 0.4 :payout 0.25}])
@@ -89,6 +89,22 @@
   (def chances [{:prob 0.1 :payout 1250} {:prob 0.9 :payout 0}])
   (def chances [{:prob 0.025 :payout 1500} {:prob 0.1 :payout 500} {:prob 0.2 :payout 300} {:prob 0.15 :payout 150} {:prob 0.35 :payout 50} {:prob 0.175 :payout 20}])
   (def chances [{:prob 0.02 :payout 2000} {:prob 0.03 :payout 1500} {:prob 0.05 :payout 1000} {:prob 0.05 :payout 500} {:prob 0.25 :payout 250} {:prob 0.15 :payout 150} {:prob 0.45 :payout 25}])
-  (def chances-run (chances-counts (chances-seq chances 10000)))
+
+  (expected-value chances)
+  (chances-counts (chances-seq chances 10000))
+  (normalize-probs chances)
+  (translate-to-bet-payoff chances)
+
+  ; Formula based growth rates
+  (growth-rate chances 0.05)
+  (find-growth-rates chances)                               ; Returns a complete list of growth rates at every whole percentage value
+  (optimal-growth-rate chances)
+
+  ; Following functions build upon each other.
+  ; simulate-bet plays a single bet.
+  ; simulate-bets plays multiple bets one after another with a given percentage bet-size.
+  ; calculate-best-growth-rate simulates-bets for all bet-sizes from 0-100
+  (simulate-bet chances 100)
+  (simulate-bets chances 0.05 100 1000)
   (calculate-best-growth-rate chances)
 )
