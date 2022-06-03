@@ -45,9 +45,10 @@
     (loop [a (first v)
            b (second v)
            rem (rest (rest v))]
-      (if (< (second a) (second b))
+      (if (nil? b) a
+         (if (< (second a) (second b))
         (recur b (first rem) (rest rem))
-        a))
+        a)))
     ))
 
 (defn simulate-bet [chances bet-amount]
@@ -82,13 +83,14 @@
   "A list of runnable helpful commands"
   []
   (def bet-size 0.1)
+  (def chances [{:prob 0.53 :payout 200} {:prob 0.47 :payout 0}])
   (def chances [{:prob 0.6 :payout 200} {:prob 0.4 :payout 0}])
   (def chances [{:prob 0.6 :payout 200} {:prob 0.4 :payout 0.25}])
   (def chances [{:prob 0.15 :payout 300} {:prob 0.35 :payout 200} {:prob 0.5 :payout 0}])
   (def chances [{:prob 0.3 :payout 300} {:prob 0.7 :payout 200} {:prob 1.0 :payout 0}])
   (def chances [{:prob 0.1 :payout 1250} {:prob 0.9 :payout 0}])
   (def chances [{:prob 0.025 :payout 1500} {:prob 0.1 :payout 500} {:prob 0.2 :payout 300} {:prob 0.15 :payout 150} {:prob 0.35 :payout 50} {:prob 0.175 :payout 20}])
-  (def chances [{:prob 0.02 :payout 2000} {:prob 0.03 :payout 1500} {:prob 0.05 :payout 1000} {:prob 0.05 :payout 500} {:prob 0.25 :payout 250} {:prob 0.15 :payout 150} {:prob 0.45 :payout 25}])
+  (def chances [{:prob 0.05 :payout 2000} {:prob 0.05 :payout 1500} {:prob 0.1 :payout 1000} {:prob 0.1 :payout 500} {:prob 0.25 :payout 250} {:prob 0.15 :payout 150} {:prob 0.2 :payout 66}])
 
   (expected-value chances)
   (chances-counts (chances-seq chances 10000))
